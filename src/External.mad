@@ -1,0 +1,20 @@
+import type { CommandResult } from "Process"
+import type { Wish } from "Wish"
+
+import IO from "IO"
+import { DEFAULT_COMMAND_OPTIONS, exec } from "Process"
+import { join } from "String"
+
+
+
+export alias CommandWish = Wish CommandResult CommandResult
+
+run = exec($, $, DEFAULT_COMMAND_OPTIONS)
+
+perform :: String -> List String -> CommandWish
+export perform = (cmd, args) => {
+  IO.putLine(`▸ ${IO.green(cmd)} ${IO.yellow(join(" ", args))}`)
+  return run(cmd, args)
+}
+
+export rg = perform("rg")

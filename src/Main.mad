@@ -1,0 +1,42 @@
+import type { Set } from "Set"
+
+import Dict from "Dictionary"
+import { equals, noop } from "Function"
+import IO from "IO"
+import List from "List"
+import { fromMaybe } from "Maybe"
+import Set from "Set"
+import String from "String"
+import Wish from "Wish"
+
+import Ext from "@/External"
+import { search } from "@/Ripgrep"
+
+
+
+unquote = String.slice(1, -1)
+
+main = () => {
+  // IO.putLine("Hello World!")
+  pipe(
+    search,
+    map(
+      map(
+        pipe(
+          Set.filter(String.startsWith("import")),
+          map(
+            pipe(
+              String.split(" "),
+              List.last,
+              fromMaybe(""),
+              unquote,
+            ),
+          ),
+          Set.toList,
+          Set.fromList,
+        ),
+      ),
+    ),
+    Wish.fulfill((e) => { IO.pTrace("BAD", e) }, (x) => { IO.pTrace("GOOD", x) }),
+  )(["from", "--type", "mad", "."])
+}

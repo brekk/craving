@@ -1,0 +1,53 @@
+import Dict from "Dictionary"
+import { equals } from "Function"
+import List from "List"
+import Set from "Set"
+import { split } from "String"
+
+import Ext from "@/External"
+
+
+
+export type MatchedFile = Match(String, String) | NoMatch
+
+combine :: List MatchedFile -> Dictionary String (Set String)
+export combine = (ms) => {
+  jam = (k, v, dict) => !Dict.includes(k, dict)
+    ? Dict.insert(k, Set.fromList([v]), dict)
+    : Dict.update((prev) => Set.insert(v, prev), k, dict)
+  return List.reduce(
+    (agg, match) => where(match) {
+      Match(name, line) =>
+        jam(name, line, agg)
+
+      NoMatch =>
+        agg
+    },
+    Dict.empty,
+    ms,
+  )
+}
+
+export search = (space) => pipe(
+  Ext.perform("rg"),
+  map(
+    pipe(
+      .stdout,
+      split("\n"),
+      map(
+        pipe(
+          split(":"),
+          where {
+            [name, match] =>
+              Match(name, match)
+
+            _ =>
+              NoMatch
+          },
+        ),
+      ),
+      List.reject(equals(NoMatch)),
+      combine,
+    ),
+  ),
+)(space)
