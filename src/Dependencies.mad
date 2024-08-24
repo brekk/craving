@@ -6,7 +6,7 @@ import Dict from "Dictionary"
 import { fromRight } from "Either"
 import { always, ifElse } from "Function"
 import IO from "IO"
-import { first, includes, last } from "List"
+import { first, includes, last, reject } from "List"
 import { fromMaybe } from "Maybe"
 import Set from "Set"
 import { replace, slice, split, startsWith } from "String"
@@ -165,8 +165,8 @@ normalizeImportAliases = (madlibJson, filePath) => pipe(
 
 // madlibJson is Right Record
 // dependencies is Dictionary String (Set String)
-categorize :: Either String MadJson -> Dictionary String (Set String) -> DepMap
-export categorize = (madlibJson, dependencies) => pipe(
+categorize :: List String -> Either String MadJson -> Dictionary String (Set String) -> DepMap
+export categorize = (exclude, madlibJson, dependencies) => pipe(
   map(getDepNames),
   fromRight([]),
   (madDeps) => map(
@@ -177,6 +177,7 @@ export categorize = (madlibJson, dependencies) => pipe(
     dependencies,
   ),
   Dict.toList,
+  reject(where { #[k, v] => includes(k, exclude) }),
   map(where { #[k, v] => #[normalizeImportAliases(madlibJson, k), v] }),
   Dict.fromList,
 )(madlibJson)

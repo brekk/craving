@@ -21,7 +21,7 @@ import {
 } from "@/Dependencies"
 import Ext from "@/External"
 import { madParse } from "@/MadlibJson"
-import { render } from "@/Render"
+import { COLORS, render } from "@/Render"
 import { search } from "@/Ripgrep"
 
 
@@ -45,11 +45,19 @@ main = () => {
     ap($, deps),
     map(
       render([
+        #["bgcolor", `"${COLORS.BG}"`],
         // #["layout", "twopi"],
-        #["splines", "curved"],
-        #["ranksep", "2.3"],
-        // #["esep", "1"],
-        // #["overlap", "scalex"],
+        // #["layout", "sfdp"],
+        // #["concentrate", "true"],
+        #["margin", "0.4"],
+        // #["fontpath", `"/Users/brekk/Library/Fonts/"`],
+        // #["root", `"@/PartyBus"`],
+        #["esep", "0.1"],
+        #["ranksep", "2"],
+        // #["splines", "ortho"],
+        // #["ranksep", "5"],
+        // #["esep", "5"],
+        #["overlap", "scalex"],
         #["outputorder", `"edgesfirst"`],
       ]),
     ),
@@ -63,5 +71,5 @@ main = () => {
         noop,
       ),
     ),
-  )(Wish.good(categorize))
+  )(Wish.good(categorize(["./src/Main.mad"])))
 }

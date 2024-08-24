@@ -15,13 +15,31 @@ indent = (n, x) => `${String.repeat(' ', n * 2)}${x}`
 
 unlines = String.join("\n")
 
-ALL_NODES = `fontsize="40pt", `
+/*
+export COLORS = {
+  PRELUDE: "#d62828",
+  EXTERNAL: "#f77f00",
+  LOCAL: "#fcbf49",
+  FG: "#003049",
+  BG: "#eae2b7",
+}
+*/
 
-PRELUDE_STYLE = `[${
-  ALL_NODES
-}shape="rect", fillcolor="blue", fontcolor="white", style="filled", margin=0.05]`
-EXTERNAL_STYLE = `[${ALL_NODES}fillcolor="yellow", style="filled"]`
-LOCAL_STYLE = `[${ALL_NODES}fillcolor="white", fontcolor="black"]`
+export COLORS = {
+  PRELUDE: "#f4d35e",
+  LOCAL: "#28afb0",
+  EXTERNAL: "#ee964b",
+  FG: "#1f271b",
+  BG: "#19647e",
+}
+
+ALL_NODES = `[fontsize="40pt", fontname="Obviously Narrow", fontcolor="${COLORS.FG}"]`
+
+PRELUDE_STYLE = `[fontsize="20pt", shape="rect", fillcolor="${
+  COLORS.PRELUDE
+}", style="filled", margin="0.25", fontname="Compadre"]`
+EXTERNAL_STYLE = `[fillcolor="${COLORS.EXTERNAL}", style="filled", shape="invhouse"]`
+LOCAL_STYLE = `[shape="rect", style="rounded,filled", fillcolor="${COLORS.LOCAL}", margin=0.25]`
 
 allDeps :: DepMap -> Set MadDependency
 export allDeps = pipe(
@@ -34,17 +52,6 @@ export allDeps = pipe(
     Set.empty,
   ),
 )
-
-declareNode = where {
-  Prelude(x) =>
-    `${quote(x)} ${PRELUDE_STYLE};`
-
-  External(x) =>
-    `${quote(x)} ${EXTERNAL_STYLE};`
-
-  Local(x) =>
-    quote(x) ++ ";"
-}
 
 printNode = pipe(
   name,
@@ -63,25 +70,52 @@ printNodesWithStyle = (i, pre, xs) => pipe(
   unless(String.isEmpty, mappend(indent(i, pre) ++ ";\n")),
 )(xs)
 
+export alias Attribute = #[String, String]
+
+renderAttribute = where {
+  #[k, v] =>
+    `${k}=${v};`
+}
+renderAttributes = (i, attrs) => pipe(
+  map(
+    pipe(
+      renderAttribute,
+      indent(i),
+    ),
+  ),
+  unlines,
+)(attrs)
+
+cluster = (attrs, n, body) => `subgraph "${n}" {
+    label="${n}";
+    cluster=true;
+
+    ${renderAttributes(2, attrs)}
+
+    ${body}
+  }`
+
+nodeStyle = mappend("node ")
+
 renderNodes = (i, x) => pipe(
   (raw) => {
     print = printNodesWithStyle(i)
-
+    all = nodeStyle(ALL_NODES)
     preludeNodes = pipe(
       List.filter(isPrelude),
-      print(mappend("node ", PRELUDE_STYLE)),
+      print(nodeStyle(PRELUDE_STYLE)),
     )(raw)
 
     extNodes = pipe(
       List.filter(isExternal),
-      print(mappend("node ", EXTERNAL_STYLE)),
+      print(nodeStyle(EXTERNAL_STYLE)),
     )(raw)
 
     localNodes = pipe(
       List.filter(isLocal),
-      print(mappend("node ", LOCAL_STYLE)),
+      print(nodeStyle(LOCAL_STYLE)),
     )(raw)
-    return [extNodes, localNodes, preludeNodes]
+    return [all, extNodes, localNodes, preludeNodes]
   },
   unlines,
 )(x)
@@ -92,15 +126,39 @@ export declareNodes = pipe(
   renderNodes(1),
 )
 
+// TEEN GIRL SQUAD
+arrowd :: String -> MadDependency -> MadDependency -> String
+arrowd = (style, a, z) => `${quote(name(a))}:s -> ${quote(name(z))}${
+  String.isEmpty(style) ? "" : " [" ++ style ++ "]"
+};`
+
+relationshipRules = (extToLocal, preludeToLocal, localToLocal, _a, _z) => {
+  draw = arrowd($, _z, _a)
+  return where(#[_z, _a]) {
+    #[Prelude(_), Local(_)] =>
+      draw(preludeToLocal)
+
+    #[External(_), Local(_)] =>
+      draw(extToLocal)
+
+    #[Local(_), Local(_)] =>
+      draw(localToLocal)
+
+    _ =>
+      draw("")
+  }
+}
+
+EXT_TO_LOCAL = `color="${COLORS.EXTERNAL}", penwidth=2`
+PRELUDE_TO_LOCAL = `style=dashed, color="${COLORS.PRELUDE}", penwidth=2`
+LOCAL_TO_LOCAL = `style=bold, color="${COLORS.LOCAL}", penwidth=2`
+
 relate :: MadDependency -> List MadDependency -> String
 export relate = (a, zs) => {
-  n = quote(name(a))
   return pipe(
     map(
       pipe(
-        name,
-        quote,
-        (z) => `${z} -> ${n};`,
+        relationshipRules(EXT_TO_LOCAL, PRELUDE_TO_LOCAL, LOCAL_TO_LOCAL, a),
         indent(1),
       ),
     ),
@@ -108,21 +166,6 @@ export relate = (a, zs) => {
   )(zs)
 }
 
-export alias Attribute = #[String, String]
-
-renderAttribute = where {
-  #[k, v] =>
-    `${k}=${v};`
-}
-renderAttributes = pipe(
-  map(
-    pipe(
-      renderAttribute,
-      indent(1),
-    ),
-  ),
-  unlines,
-)
 
 render :: List Attribute -> DepMap -> String
 export render = (attrs, depMap) => {
@@ -136,7 +179,7 @@ export render = (attrs, depMap) => {
     unlines,
   )(depMap)
 
-  return `digraph MadDeps {\n\n  \/\/ attributes\n\n${renderAttributes(attrs)}\n\n  \/\/ nodes\n\n${
-    nodes
-  }\n\n  \/\/ relationships\n\n${relations}\n}`
+  return `digraph MadDeps {\n\n  \/\/ attributes\n\n${
+    renderAttributes(1, attrs)
+  }\n\n  \/\/ nodes\n\n${nodes}\n\n  \/\/ relationships\n\n${relations}\n}`
 }
