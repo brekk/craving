@@ -1,7 +1,9 @@
 import type { Set } from "Set"
 
 import Dict from "Dictionary"
-import { equals, noop } from "Function"
+import { fromRight } from "Either"
+import File from "File"
+import { always, equals, noop } from "Function"
 import IO from "IO"
 import List from "List"
 import { fromMaybe } from "Maybe"
@@ -9,34 +11,47 @@ import Set from "Set"
 import String from "String"
 import Wish from "Wish"
 
+import {
+  Installed,
+  Local,
+  Prelude,
+  categorize,
+  getDepNames,
+  getUniqueDependencies,
+} from "@/Dependencies"
 import Ext from "@/External"
+import { madParse } from "@/MadlibJson"
 import { search } from "@/Ripgrep"
 
 
 
-unquote = String.slice(1, -1)
+type Barf = Barf(String)
 
 main = () => {
   // IO.putLine("Hello World!")
-  pipe(
+  mJson = pipe(
+    File.read,
+    Wish.mapRej(always(Barf("BAD MADLIB.JSON PARSE"))),
+    map(madParse),
+  )("./madlib.json")
+  IO.pTrace(">>>", mJson)
+  deps = pipe(
     search,
-    map(
-      map(
-        pipe(
-          Set.filter(String.startsWith("import")),
-          map(
-            pipe(
-              String.split(" "),
-              List.last,
-              fromMaybe(""),
-              unquote,
-            ),
-          ),
-          Set.toList,
-          Set.fromList,
-        ),
+    Wish.mapRej(always(Barf("BAD RIPGREP"))),
+    map(map(getUniqueDependencies)),
+  )(["from", "--type", "mad", "."])
+  pipe(
+    ap($, mJson),
+    ap($, deps),
+    Wish.fulfill(
+      pipe(
+        IO.pTrace("BAD"),
+        noop,
+      ),
+      pipe(
+        IO.pTrace("GOOD"),
+        noop,
       ),
     ),
-    Wish.fulfill((e) => { IO.pTrace("BAD", e) }, (x) => { IO.pTrace("GOOD", x) }),
-  )(["from", "--type", "mad", "."])
+  )(Wish.good(categorize))
 }

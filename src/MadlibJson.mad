@@ -1,0 +1,72 @@
+import type { Either } from "Either"
+import type { Maybe } from "Maybe"
+
+import { Left, Right } from "Either"
+import Json from "Json/Parse"
+
+
+
+export alias Dependency = { description :: String, minVersion :: String, url :: String }
+
+export alias DotPath = { path :: String }
+
+
+export alias MadJson = {
+  bin :: Maybe String,
+  dependencies :: Maybe (List Dependency),
+  importAliases :: Maybe DotPath,
+  madlibVersion :: Maybe String,
+  main :: String,
+  name :: String,
+  version :: String,
+}
+
+// concrete function results
+
+__json :: String
+  -> String
+  -> String
+  -> Maybe String
+  -> Maybe String
+  -> Maybe (List Dependency)
+  -> Maybe DotPath
+  -> MadJson
+__json = (name, version, main, bin, madlibVersion, dependencies, importAliases) => (
+  { main, bin, madlibVersion, name, version, importAliases, dependencies }
+)
+
+__dependency :: String -> String -> String -> Dependency
+__dependency = (minVersion, url, description) => ({ minVersion, url, description })
+
+__importAliases = (path) => ({ path })
+
+// parser
+
+madJson :: Json.Parser MadJson
+export madJson = Json.map7(
+  __json,
+  Json.field("name", Json.string),
+  Json.field("version", Json.string),
+  Json.field("main", Json.string),
+  Json.maybe(Json.field("bin", Json.string)),
+  Json.maybe(Json.field("madlibVersion", Json.string)),
+  Json.maybe(
+    Json.field(
+      "dependencies",
+      Json.list(
+        Json.map3(
+          __dependency,
+          Json.field("minVersion", Json.string),
+          Json.field("url", Json.string),
+          Json.field("description", Json.string),
+        ),
+      ),
+    ),
+  ),
+  Json.maybe(Json.field("importAliases", Json.map1(__importAliases, Json.field(".", Json.string)))),
+)
+
+export alias MadPackage = Either String MadJson
+
+madParse :: String -> MadPackage
+export madParse = Json.parse(madJson)

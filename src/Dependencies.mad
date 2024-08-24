@@ -1,0 +1,147 @@
+import type { Either } from "Either"
+
+import type { MadJson } from "@/MadlibJson"
+
+import Dict from "Dictionary"
+import { fromRight } from "Either"
+import { always, ifElse } from "Function"
+import IO from "IO"
+import { first, includes, last } from "List"
+import { fromMaybe } from "Maybe"
+import Set from "Set"
+import { replace, slice, split, startsWith } from "String"
+
+
+
+unquote = slice(1, -1)
+
+getUniqueDependencies :: Set String -> Set String
+export getUniqueDependencies = pipe(
+  Set.filter(startsWith("import")),
+  map(
+    pipe(
+      split(" "),
+      last,
+      fromMaybe(""),
+      unquote,
+    ),
+  ),
+  Set.toList,
+  Set.fromList,
+)
+
+export getDepNames = pipe(
+  .dependencies,
+  map(map(.description)),
+  fromMaybe([]),
+)
+
+export type MadDependency = Local(String) | Prelude(String) | Installed(String)
+
+derive Comparable MadDependency
+
+export PRELUDE = [
+  "Alternative",
+  "Applicative",
+  "Array",
+  "Bifunctor",
+  "Byte",
+  "ByteArray",
+  "Char",
+  "Compare",
+  "Control",
+  "Crypto",
+  "Date",
+  "Dictionary",
+  "Directory",
+  "Either",
+  "File",
+  "FilePath",
+  "Float",
+  "Function",
+  "Functor",
+  "Http",
+  "IO",
+  "Integer",
+  "Json/Parse",
+  "Json/Print",
+  "Json/Value",
+  "List",
+  "Math",
+  "Maybe",
+  "Monad",
+  "MonadRec",
+  "Network",
+  "Number",
+  "Parse",
+  "PrettyPrint",
+  "Process",
+  "Random",
+  "Random/LCG",
+  "Scan",
+  "Set",
+  "Short",
+  "Show",
+  "Stream",
+  "Stream/File",
+  "Stream/Process",
+  "String",
+  "Terminal",
+  "Test",
+  "Thread",
+  "Tuple",
+  "Url",
+  "Wish",
+]
+
+categorizeMadDeps :: List String -> String -> MadDependency
+categorizeMadDeps = (madDeps, raw) => ifElse(
+  includes($, PRELUDE),
+  Prelude,
+  pipe(
+    split("/"),
+    first,
+    fromMaybe("???"),
+    (normalized) => includes(normalized, madDeps)
+      ? Installed(raw)
+      : includes(normalized, PRELUDE) ? Prelude(raw) : Local(raw),
+  ),
+)(raw)
+
+normalizeImportAliases = (madlibJson, filePath) => pipe(
+  map(.importAliases),
+  map(
+    pipe(
+      map(
+        pipe(
+          .path,
+          (raw) => replace(`./${raw}`, "@", filePath),
+        ),
+      ),
+      fromMaybe(filePath),
+      replace(".mad", ""),
+    ),
+  ),
+  fromRight(filePath),
+  Local,
+)(madlibJson)
+
+// madlibJson is Right Record
+// dependencies is Dictionary String (Set String)
+categorize :: Either String MadJson
+  -> Dictionary String (Set String)
+  -> Dictionary MadDependency (List MadDependency)
+export categorize = (madlibJson, dependencies) => pipe(
+  map(getDepNames),
+  fromRight([]),
+  (madDeps) => map(
+    pipe(
+      Set.toList,
+      map(categorizeMadDeps(madDeps)),
+    ),
+    dependencies,
+  ),
+  Dict.toList,
+  map(where { #[k, v] => #[normalizeImportAliases(madlibJson, k), v] }),
+  Dict.fromList,
+)(madlibJson)

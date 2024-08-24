@@ -29,7 +29,7 @@ export combine = (ms) => {
 }
 
 export search = (space) => pipe(
-  Ext.perform("rg"),
+  Ext.run("rg"),
   map(
     pipe(
       .stdout,
