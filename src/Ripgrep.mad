@@ -2,7 +2,7 @@ import Dict from "Dictionary"
 import { equals } from "Function"
 import List from "List"
 import Set from "Set"
-import { split } from "String"
+import { contains, split } from "String"
 
 import Ext from "@/External"
 
@@ -39,7 +39,7 @@ export search = (space) => pipe(
           split(":"),
           where {
             [name, match] =>
-              Match(name, match)
+              contains("spec", name) ? NoMatch : Match(name, match)
 
             _ =>
               NoMatch

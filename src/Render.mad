@@ -1,19 +1,27 @@
 import type { DepMap, MadDependency } from "@/Dependencies"
 
 import Dict from "Dictionary"
+import { unless } from "Function"
 import List from "List"
 import Set from "Set"
 import String from "String"
 
-import { External, Local, Prelude, name } from "@/Dependencies"
+import { External, Local, Prelude, isExternal, isLocal, isPrelude, name } from "@/Dependencies"
 
 
 
 quote = (x) => `"${x}"`
-indent = (x) => `  ${x}`
+indent = (n, x) => `${String.repeat(' ', n * 2)}${x}`
 
-PRELUDE_STYLE = `[color="blue"]`
-EXTERNAL_STYLE = `[color="green"]`
+unlines = String.join("\n")
+
+ALL_NODES = `fontsize="40pt", `
+
+PRELUDE_STYLE = `[${
+  ALL_NODES
+}shape="rect", fillcolor="blue", fontcolor="white", style="filled", margin=0.05]`
+EXTERNAL_STYLE = `[${ALL_NODES}fillcolor="yellow", style="filled"]`
+LOCAL_STYLE = `[${ALL_NODES}fillcolor="white", fontcolor="black"]`
 
 allDeps :: DepMap -> Set MadDependency
 export allDeps = pipe(
@@ -29,46 +37,95 @@ export allDeps = pipe(
 
 declareNode = where {
   Prelude(x) =>
-    `${quote(x)} ${PRELUDE_STYLE}`
+    `${quote(x)} ${PRELUDE_STYLE};`
 
   External(x) =>
-    `${quote(x)} ${EXTERNAL_STYLE}`
+    `${quote(x)} ${EXTERNAL_STYLE};`
 
   Local(x) =>
-    quote(x)
+    quote(x) ++ ";"
 }
+
+printNode = pipe(
+  name,
+  quote,
+  mappend($, ";"),
+)
+
+printNodesWithStyle = (i, pre, xs) => pipe(
+  map(
+    pipe(
+      printNode,
+      indent(i),
+    ),
+  ),
+  unlines,
+  unless(String.isEmpty, mappend(indent(i, pre) ++ ";\n")),
+)(xs)
+
+renderNodes = (i, x) => pipe(
+  (raw) => {
+    print = printNodesWithStyle(i)
+
+    preludeNodes = pipe(
+      List.filter(isPrelude),
+      print(mappend("node ", PRELUDE_STYLE)),
+    )(raw)
+
+    extNodes = pipe(
+      List.filter(isExternal),
+      print(mappend("node ", EXTERNAL_STYLE)),
+    )(raw)
+
+    localNodes = pipe(
+      List.filter(isLocal),
+      print(mappend("node ", LOCAL_STYLE)),
+    )(raw)
+    return [extNodes, localNodes, preludeNodes]
+  },
+  unlines,
+)(x)
 
 declareNodes :: Set MadDependency -> String
 export declareNodes = pipe(
   Set.toList,
-  map(
-    pipe(
-      declareNode,
-      indent,
-    ),
-  ),
-  String.join("\n"),
+  renderNodes(1),
 )
 
 relate :: MadDependency -> List MadDependency -> String
 export relate = (a, zs) => {
   n = quote(name(a))
   return pipe(
-    // Set.toList,
     map(
       pipe(
         name,
         quote,
-        (z) => `${z} -> ${n}`,
-        indent,
+        (z) => `${z} -> ${n};`,
+        indent(1),
       ),
     ),
-    String.join("\n"),
+    unlines,
   )(zs)
 }
 
-render :: DepMap -> String
-export render = (depMap) => {
+export alias Attribute = #[String, String]
+
+renderAttribute = where {
+  #[k, v] =>
+    `${k}=${v};`
+}
+renderAttributes = pipe(
+  map(
+    pipe(
+      renderAttribute,
+      indent(1),
+    ),
+  ),
+  unlines,
+)
+
+render :: List Attribute -> DepMap -> String
+export render = (attrs, depMap) => {
   nodes = pipe(
     allDeps,
     declareNodes,
@@ -76,8 +133,10 @@ export render = (depMap) => {
   relations = pipe(
     Dict.toList,
     map(where { #[k, v] => relate(k, v) }),
-    String.join("\n"),
+    unlines,
   )(depMap)
 
-  return `digraph MadDeps {\n${nodes}\n${relations}\n}`
+  return `digraph MadDeps {\n\n  \/\/ attributes\n\n${renderAttributes(attrs)}\n\n  \/\/ nodes\n\n${
+    nodes
+  }\n\n  \/\/ relationships\n\n${relations}\n}`
 }

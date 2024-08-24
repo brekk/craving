@@ -52,6 +52,28 @@ export name = where {
     x
 }
 
+export isPrelude = where {
+  Prelude(_) =>
+    true
+
+  _ =>
+    false
+}
+export isLocal = where {
+  Local(_) =>
+    true
+
+  _ =>
+    false
+}
+export isExternal = where {
+  External(_) =>
+    true
+
+  _ =>
+    false
+}
+
 export alias DepMap = Dictionary MadDependency (List MadDependency)
 
 export PRELUDE = [

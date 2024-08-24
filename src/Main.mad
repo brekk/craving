@@ -35,16 +35,24 @@ main = () => {
     Wish.mapRej(always(Barf("BAD MADLIB.JSON PARSE"))),
     map(madParse),
   )("./madlib.json")
-  IO.pTrace(">>>", mJson)
   deps = pipe(
     search,
     Wish.mapRej(always(Barf("BAD RIPGREP"))),
     map(map(getUniqueDependencies)),
-  )(["from", "--type", "mad", "."])
+  )(["from", "--type", "mad", "./src"])
   pipe(
     ap($, mJson),
     ap($, deps),
-    map(render),
+    map(
+      render([
+        // #["layout", "twopi"],
+        #["splines", "curved"],
+        #["ranksep", "2.3"],
+        // #["esep", "1"],
+        // #["overlap", "scalex"],
+        #["outputorder", `"edgesfirst"`],
+      ]),
+    ),
     Wish.fulfill(
       pipe(
         IO.pTrace("BAD"),
