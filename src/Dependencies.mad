@@ -36,9 +36,23 @@ export getDepNames = pipe(
   fromMaybe([]),
 )
 
-export type MadDependency = Local(String) | Prelude(String) | Installed(String)
+export type MadDependency = Local(String) | Prelude(String) | External(String)
 
 derive Comparable MadDependency
+
+name :: MadDependency -> String
+export name = where {
+  Local(x) =>
+    x
+
+  Prelude(x) =>
+    x
+
+  External(x) =>
+    x
+}
+
+export alias DepMap = Dictionary MadDependency (List MadDependency)
 
 export PRELUDE = [
   "Alternative",
@@ -103,11 +117,12 @@ categorizeMadDeps = (madDeps, raw) => ifElse(
     first,
     fromMaybe("???"),
     (normalized) => includes(normalized, madDeps)
-      ? Installed(raw)
+      ? External(raw)
       : includes(normalized, PRELUDE) ? Prelude(raw) : Local(raw),
   ),
 )(raw)
 
+normalizeImportAliases :: Either String MadJson -> String -> MadDependency
 normalizeImportAliases = (madlibJson, filePath) => pipe(
   map(.importAliases),
   map(
@@ -128,9 +143,7 @@ normalizeImportAliases = (madlibJson, filePath) => pipe(
 
 // madlibJson is Right Record
 // dependencies is Dictionary String (Set String)
-categorize :: Either String MadJson
-  -> Dictionary String (Set String)
-  -> Dictionary MadDependency (List MadDependency)
+categorize :: Either String MadJson -> Dictionary String (Set String) -> DepMap
 export categorize = (madlibJson, dependencies) => pipe(
   map(getDepNames),
   fromRight([]),

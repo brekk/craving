@@ -1,0 +1,83 @@
+import type { DepMap, MadDependency } from "@/Dependencies"
+
+import Dict from "Dictionary"
+import List from "List"
+import Set from "Set"
+import String from "String"
+
+import { External, Local, Prelude, name } from "@/Dependencies"
+
+
+
+quote = (x) => `"${x}"`
+indent = (x) => `  ${x}`
+
+PRELUDE_STYLE = `[color="blue"]`
+EXTERNAL_STYLE = `[color="green"]`
+
+allDeps :: DepMap -> Set MadDependency
+export allDeps = pipe(
+  Dict.toList,
+  List.reduce(
+    (s, x) => where(x) {
+      #[k, ds] =>
+        Set.merge(s, Set.insert(k, Set.fromList(ds)))
+    },
+    Set.empty,
+  ),
+)
+
+declareNode = where {
+  Prelude(x) =>
+    `${quote(x)} ${PRELUDE_STYLE}`
+
+  External(x) =>
+    `${quote(x)} ${EXTERNAL_STYLE}`
+
+  Local(x) =>
+    quote(x)
+}
+
+declareNodes :: Set MadDependency -> String
+export declareNodes = pipe(
+  Set.toList,
+  map(
+    pipe(
+      declareNode,
+      indent,
+    ),
+  ),
+  String.join("\n"),
+)
+
+relate :: MadDependency -> List MadDependency -> String
+export relate = (a, zs) => {
+  n = quote(name(a))
+  return pipe(
+    // Set.toList,
+    map(
+      pipe(
+        name,
+        quote,
+        (z) => `${z} -> ${n}`,
+        indent,
+      ),
+    ),
+    String.join("\n"),
+  )(zs)
+}
+
+render :: DepMap -> String
+export render = (depMap) => {
+  nodes = pipe(
+    allDeps,
+    declareNodes,
+  )(depMap)
+  relations = pipe(
+    Dict.toList,
+    map(where { #[k, v] => relate(k, v) }),
+    String.join("\n"),
+  )(depMap)
+
+  return `digraph MadDeps {\n${nodes}\n${relations}\n}`
+}
