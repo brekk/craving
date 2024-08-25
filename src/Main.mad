@@ -21,7 +21,7 @@ import {
 } from "@/Dependencies"
 import Ext from "@/External"
 import { madParse } from "@/MadlibJson"
-import { COLORS, render } from "@/Render"
+import { COLORS, render } from "@/RenderDot"
 import { search } from "@/Ripgrep"
 
 
