@@ -1,0 +1,82 @@
+import Dict from "Dictionary"
+import IO from "IO"
+import List from "List"
+import String from "String"
+import Tuple from "Tuple"
+
+import { isExternal, isLocal, isPrelude, keyedDeps, name } from "@/Dependencies"
+import { indent, quote, sandwich, unlines } from "@/String"
+
+
+
+NODE = {
+  box: sandwich("[", "]"),
+  rounded: sandwich("(", ")"),
+  stadium: sandwich("[(", ")]"),
+  subroutine: sandwich("[[", "]]"),
+  database: sandwich("[(", ")]"),
+  circle: sandwich("((", "))"),
+  diamond: sandwich("{", "}"),
+  hex: sandwich("{{", "}}"),
+}
+
+LINK = {
+  arrow: sandwich($, $, "-->"),
+  open: sandwich($, $, " --- "),
+  dotted: sandwich($, $, "-.->"),
+  thick: sandwich($, $, " ==> "),
+  invisible: sandwich($, $, " ~~~ "),
+  circle: sandwich($, $, " --o "),
+  cross: sandwich($, $, " --x "),
+  arrowWithLabel: (lb, a, z) => pipe(
+    sandwich("-->|", "|"),
+    sandwich(a, z),
+  )(lb),
+  dottedWithLabel: (lb, a, z) => pipe(
+    sandwich("-. ", ".->"),
+    sandwich(a, z),
+  )(lb),
+  thickWithLabel: (lb, a, z) => pipe(
+    sandwich(" == ", " ==> "),
+    sandwich(a, z),
+  )(lb),
+}
+
+export declareNode = (styler, i, x) => `id${show(i)}${styler(quote(x))}`
+
+export declareSpecificNodeWithStyle = (select, styler, xs) => pipe(
+  List.filter(where { #[_, x] => select(x) }),
+  IO.pTrace("!!!"),
+  map(
+    pipe(
+      IO.pTrace("huh"),
+      where {
+        #[i, x] =>
+          declareNode(styler, i, name(x))
+      },
+      indent(1),
+    ),
+  ),
+  unlines,
+)(xs)
+
+export declareNodes = pipe(
+  (raw) => {
+    IO.pTrace("RAW", raw)
+    paint = declareSpecificNodeWithStyle($, $, raw)
+    extNodes = paint(isExternal, NODE.box)
+    localNodes = paint(isLocal, NODE.rounded)
+    preludeNodes = paint(isPrelude, NODE.hex)
+    return [extNodes, preludeNodes, localNodes]
+  },
+  unlines,
+)
+
+export mermaidFlow = (raw) => {
+  nodes = pipe(
+    keyedDeps,
+    declareNodes,
+  )(raw)
+  IO.pTrace("NODS", nodes)
+  return nodes
+}

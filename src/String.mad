@@ -1,0 +1,15 @@
+import { join, repeat } from "String"
+
+
+
+quote :: String -> String
+export quote = (x) => `"${x}"`
+
+indent :: Integer -> String -> String
+export indent = (n, x) => `${repeat(' ', n * 2)}${x}`
+
+unlines :: List String -> String
+export unlines = join("\n")
+
+sandwich :: String -> String -> String -> String
+export sandwich = (before, after, x) => before ++ x ++ after

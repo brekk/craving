@@ -1,0 +1,58 @@
+import type { Set } from "Set"
+
+import Dict from "Dictionary"
+import { fromRight } from "Either"
+import File from "File"
+import { always, equals, noop } from "Function"
+import IO from "IO"
+import List from "List"
+import { fromMaybe } from "Maybe"
+import Set from "Set"
+import String from "String"
+import Wish from "Wish"
+
+import {
+  External,
+  Local,
+  Prelude,
+  categorize,
+  getDepNames,
+  getUniqueDependencies,
+} from "@/Dependencies"
+import Ext from "@/External"
+import { madParse } from "@/MadlibJson"
+import { mermaidFlow } from "@/RenderMermaid"
+import { search } from "@/Ripgrep"
+
+
+
+type Barf = Barf(String)
+
+main = () => {
+  // IO.putLine("Hello World!")
+  mJson = pipe(
+    File.read,
+    Wish.mapRej(always(Barf("BAD MADLIB.JSON PARSE"))),
+    map(madParse),
+  )("./madlib.json")
+  deps = pipe(
+    search,
+    Wish.mapRej(always(Barf("BAD RIPGREP"))),
+    map(map(getUniqueDependencies)),
+  )(["from", "--type", "mad", "./src"])
+  pipe(
+    ap($, mJson),
+    ap($, deps),
+    map(mermaidFlow),
+    Wish.fulfill(
+      pipe(
+        IO.pTrace("BAD"),
+        noop,
+      ),
+      pipe(
+        IO.putLine,
+        noop,
+      ),
+    ),
+  )(Wish.good(categorize(["./src/Main.mad"])))
+}

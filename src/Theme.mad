@@ -1,0 +1,23 @@
+export alias Theme = {
+  bg :: String,
+  external :: String,
+  fg :: String,
+  local :: String,
+  prelude :: String,
+}
+
+export WARM = {
+  PRELUDE: "#d62828",
+  EXTERNAL: "#f77f00",
+  LOCAL: "#fcbf49",
+  FG: "#003049",
+  BG: "#eae2b7",
+}
+
+export COOL_DESERT = {
+  PRELUDE: "#f4d35e",
+  LOCAL: "#28afb0",
+  EXTERNAL: "#ee964b",
+  FG: "#1f271b",
+  BG: "#19647e",
+}

@@ -6,32 +6,22 @@ import List from "List"
 import Set from "Set"
 import String from "String"
 
-import { External, Local, Prelude, isExternal, isLocal, isPrelude, name } from "@/Dependencies"
+import {
+  External,
+  Local,
+  Prelude,
+  allDeps,
+  isExternal,
+  isLocal,
+  isPrelude,
+  name,
+} from "@/Dependencies"
+import { indent, quote, unlines } from "@/String"
+import { COOL_DESERT } from "@/Theme"
 
 
 
-quote = (x) => `"${x}"`
-indent = (n, x) => `${String.repeat(' ', n * 2)}${x}`
-
-unlines = String.join("\n")
-
-/*
-export COLORS = {
-  PRELUDE: "#d62828",
-  EXTERNAL: "#f77f00",
-  LOCAL: "#fcbf49",
-  FG: "#003049",
-  BG: "#eae2b7",
-}
-*/
-
-export COLORS = {
-  PRELUDE: "#f4d35e",
-  LOCAL: "#28afb0",
-  EXTERNAL: "#ee964b",
-  FG: "#1f271b",
-  BG: "#19647e",
-}
+COLORS = COOL_DESERT
 
 ALL_NODES = `[fontsize="40pt", fontname="Obviously Narrow", fontcolor="${COLORS.FG}"]`
 
@@ -41,17 +31,7 @@ PRELUDE_STYLE = `[fontsize="20pt", shape="rect", fillcolor="${
 EXTERNAL_STYLE = `[fillcolor="${COLORS.EXTERNAL}", style="filled", shape="invhouse"]`
 LOCAL_STYLE = `[shape="rect", style="rounded,filled", fillcolor="${COLORS.LOCAL}", margin=0.25]`
 
-allDeps :: DepMap -> Set MadDependency
-export allDeps = pipe(
-  Dict.toList,
-  List.reduce(
-    (s, x) => where(x) {
-      #[k, ds] =>
-        Set.merge(s, Set.insert(k, Set.fromList(ds)))
-    },
-    Set.empty,
-  ),
-)
+
 
 printNode = pipe(
   name,
