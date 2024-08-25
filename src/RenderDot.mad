@@ -1,4 +1,5 @@
 import type { DepMap, MadDependency } from "@/Dependencies"
+import type { AppliedTheme, Theme } from "@/Theme"
 
 import Dict from "Dictionary"
 import { unless } from "Function"
@@ -17,19 +18,7 @@ import {
   name,
 } from "@/Dependencies"
 import { indent, quote, unlines } from "@/String"
-import { COOL_DESERT } from "@/Theme"
-
-
-
-COLORS = COOL_DESERT
-
-ALL_NODES = `[fontsize="40pt", fontname="Obviously Narrow", fontcolor="${COLORS.FG}"]`
-
-PRELUDE_STYLE = `[fontsize="20pt", shape="rect", fillcolor="${
-  COLORS.PRELUDE
-}", style="filled", margin="0.25", fontname="Compadre"]`
-EXTERNAL_STYLE = `[fillcolor="${COLORS.EXTERNAL}", style="filled", shape="invhouse"]`
-LOCAL_STYLE = `[shape="rect", style="rounded,filled", fillcolor="${COLORS.LOCAL}", margin=0.25]`
+import { applyTheme } from "@/Theme"
 
 
 
@@ -77,68 +66,64 @@ cluster = (attrs, n, body) => `subgraph "${n}" {
 
 nodeStyle = mappend("node ")
 
-renderNodes = (i, x) => pipe(
+renderNodes = (theme, i, x) => pipe(
   (raw) => {
     print = printNodesWithStyle(i)
-    all = nodeStyle(ALL_NODES)
+    all = nodeStyle(theme.all)
     preludeNodes = pipe(
       List.filter(isPrelude),
-      print(nodeStyle(PRELUDE_STYLE)),
+      print(nodeStyle(theme.nodes.prelude)),
     )(raw)
 
     extNodes = pipe(
       List.filter(isExternal),
-      print(nodeStyle(EXTERNAL_STYLE)),
+      print(nodeStyle(theme.nodes.external)),
     )(raw)
 
     localNodes = pipe(
       List.filter(isLocal),
-      print(nodeStyle(LOCAL_STYLE)),
+      print(nodeStyle(theme.nodes.local)),
     )(raw)
     return [all, extNodes, localNodes, preludeNodes]
   },
   unlines,
 )(x)
 
-declareNodes :: Set MadDependency -> String
-export declareNodes = pipe(
+declareNodes :: AppliedTheme -> Set MadDependency -> String
+export declareNodes = (theme, deps) => pipe(
   Set.toList,
-  renderNodes(1),
-)
+  renderNodes(theme, 1),
+)(deps)
 
 // TEEN GIRL SQUAD
 arrowd :: String -> MadDependency -> MadDependency -> String
-arrowd = (style, a, z) => `${quote(name(a))}:s -> ${quote(name(z))}${
+arrowd = (style, a, z) => `${quote(name(a))} -> ${quote(name(z))}${
   String.isEmpty(style) ? "" : " [" ++ style ++ "]"
 };`
 
-relationshipRules = (extToLocal, preludeToLocal, localToLocal, _a, _z) => {
+relationshipRules = (theme, _a, _z) => {
   draw = arrowd($, _z, _a)
   return where(#[_z, _a]) {
     #[Prelude(_), Local(_)] =>
-      draw(preludeToLocal)
+      draw(theme.edges.prelude)
 
     #[External(_), Local(_)] =>
-      draw(extToLocal)
+      draw(theme.edges.external)
 
     #[Local(_), Local(_)] =>
-      draw(localToLocal)
+      draw(theme.edges.local)
 
     _ =>
       draw("")
   }
 }
 
-EXT_TO_LOCAL = `color="${COLORS.EXTERNAL}", penwidth=2`
-PRELUDE_TO_LOCAL = `style=dashed, color="${COLORS.PRELUDE}", penwidth=2`
-LOCAL_TO_LOCAL = `style=bold, color="${COLORS.LOCAL}", penwidth=2`
-
-relate :: MadDependency -> List MadDependency -> String
-export relate = (a, zs) => {
+relate :: AppliedTheme -> MadDependency -> List MadDependency -> String
+export relate = (theme, a, zs) => {
   return pipe(
     map(
       pipe(
-        relationshipRules(EXT_TO_LOCAL, PRELUDE_TO_LOCAL, LOCAL_TO_LOCAL, a),
+        relationshipRules(theme, a),
         indent(1),
       ),
     ),
@@ -147,15 +132,16 @@ export relate = (a, zs) => {
 }
 
 
-render :: List Attribute -> DepMap -> String
-export render = (attrs, depMap) => {
+render :: Theme -> List Attribute -> DepMap -> String
+export render = (_theme, attrs, depMap) => {
+  theme = applyTheme(_theme)
   nodes = pipe(
     allDeps,
-    declareNodes,
+    declareNodes(theme),
   )(depMap)
   relations = pipe(
     Dict.toList,
-    map(where { #[k, v] => relate(k, v) }),
+    map(where { #[k, v] => relate(theme, k, v) }),
     unlines,
   )(depMap)
 

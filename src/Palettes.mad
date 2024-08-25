@@ -1,0 +1,31 @@
+export COOL_DESERT = {
+  prelude: "#f4d35e",
+  local: "#28afb0",
+  external: "#ee964b",
+  fg: "#1f271b",
+  bg: "#19647e",
+}
+
+export WARM = {
+  local: "#d62828",
+  external: "#f77f00",
+  prelude: "#fcbf49",
+  fg: "#003049",
+  bg: "#eae2b7",
+}
+
+export NEON = {
+  external: "#f72585",
+  local: "#7209b7",
+  bg: "#240046",
+  prelude: "#4361ee",
+  fg: "#fcfbf9",
+}
+
+export ROSE_PINE = {
+  bg: "#191724",
+  fg: "#e0def4",
+  prelude: "#31748f",
+  local: "#9ccfd8",
+  external: "#c4a7e7",
+}

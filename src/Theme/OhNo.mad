@@ -1,0 +1,28 @@
+import { Just, Nothing } from "Maybe"
+
+import Palettes from "@/Palettes"
+import { Theme } from "@/Theme"
+
+
+
+export theme = Theme(
+  Palettes.ROSE_PINE,
+  { all: "Obviously Narrow", prelude: Just("Compadre"), external: Nothing, local: Nothing },
+  (t, f) => `[fontsize="40pt", fontname="${f.all}", fontcolor="${t.bg}"]`,
+  (t, f) => (
+    {
+      prelude: `[fontsize="20pt", shape="rect", fillcolor="${
+        t.prelude
+      }", style="filled", margin="0.25", fontname="${f.prelude}"]`,
+      external: `[fillcolor="${t.external}", style="filled", shape="square", margin=0.35]`,
+      local: `[shape="rect", style="rounded,filled", fillcolor="${t.local}", margin=0.25]`,
+    }
+  ),
+  (t, _) => (
+    {
+      external: `color="${t.external}", penwidth=2`,
+      prelude: `style=dashed, color="${t.prelude}", penwidth=2`,
+      local: `style=bold, color="${t.local}", penwidth=2`,
+    }
+  ),
+)

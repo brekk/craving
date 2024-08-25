@@ -21,8 +21,10 @@ import {
 } from "@/Dependencies"
 import Ext from "@/External"
 import { madParse } from "@/MadlibJson"
-import { COLORS, render } from "@/RenderDot"
+import { render } from "@/RenderDot"
 import { search } from "@/Ripgrep"
+import { getPalette } from "@/Theme"
+import { theme } from "@/Theme/OhNo"
 
 
 
@@ -44,22 +46,17 @@ main = () => {
     ap($, mJson),
     ap($, deps),
     map(
-      render([
-        #["bgcolor", `"${COLORS.BG}"`],
-        // #["layout", "twopi"],
-        // #["layout", "sfdp"],
-        #["concentrate", "true"],
-        // #["margin", "0"],
-        // #["fontpath", `"/Users/brekk/Library/Fonts/"`],
-        // #["root", `"@/PartyBus"`],
-        #["esep", "0.1"],
-        #["ranksep", "2"],
-        // #["splines", "ortho"],
-        // #["ranksep", "5"],
-        // #["esep", "5"],
-        #["overlap", "scalex"],
-        #["outputorder", `"edgesfirst"`],
-      ]),
+      render(
+        theme,
+        [
+          #["bgcolor", `"${getPalette(theme).bg}"`],
+          #["layout", "neato"],
+          #["esep", "0.1"],
+          #["ranksep", "2"],
+          #["overlap", "scalex"],
+          #["outputorder", `"edgesfirst"`],
+        ],
+      ),
     ),
     Wish.fulfill(
       pipe(

@@ -1,23 +1,65 @@
-export alias Theme = {
+import type { Maybe } from "Maybe"
+
+import { Just, Nothing, fromMaybe } from "Maybe"
+
+
+
+export alias DepRecord = { external :: String, local :: String, prelude :: String }
+export alias ThemeStructure = {
   bg :: String,
   external :: String,
   fg :: String,
   local :: String,
   prelude :: String,
 }
+export alias GivenFonts = {
+  all :: String,
+  external :: Maybe String,
+  local :: Maybe String,
+  prelude :: Maybe String,
+}
+export alias Fonts = { all :: String, external :: String, local :: String, prelude :: String }
+export alias Template = ThemeStructure -> Fonts -> String
+export alias TemplateRecord = ThemeStructure -> Fonts -> DepRecord
 
 export WARM = {
-  PRELUDE: "#d62828",
-  EXTERNAL: "#f77f00",
-  LOCAL: "#fcbf49",
-  FG: "#003049",
-  BG: "#eae2b7",
+  prelude: "#d62828",
+  external: "#f77f00",
+  local: "#fcbf49",
+  fg: "#003049",
+  bg: "#eae2b7",
 }
 
-export COOL_DESERT = {
-  PRELUDE: "#f4d35e",
-  LOCAL: "#28afb0",
-  EXTERNAL: "#ee964b",
-  FG: "#1f271b",
-  BG: "#19647e",
+// ThemeStructure, Fonts, All, Nodes, Edges
+export type Theme = Theme(ThemeStructure, GivenFonts, Template, TemplateRecord, TemplateRecord)
+
+export alias AppliedTheme = {
+  all :: String,
+  edges :: { external :: String, local :: String, prelude :: String },
+  nodes :: { external :: String, local :: String, prelude :: String },
+}
+
+applyTheme :: Theme -> AppliedTheme
+export applyTheme = where {
+  Theme(structure, _fonts, makeAll, makeNodes, makeEdges) =>
+    do {
+      guarantee = fromMaybe(_fonts.all)
+      p = guarantee(_fonts.prelude)
+      e = guarantee(_fonts.external)
+      l = guarantee(_fonts.local)
+      fonts = { all: _fonts.all, prelude: p, external: e, local: l }
+      return (
+        {
+          all: makeAll(structure, fonts),
+          nodes: makeNodes(structure, fonts),
+          edges: makeEdges(structure, fonts),
+        }
+      )
+    }
+}
+
+getPalette :: Theme -> ThemeStructure
+export getPalette = where {
+  Theme(p, _, _, _, _) =>
+    p
 }
