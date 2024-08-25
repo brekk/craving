@@ -6,10 +6,10 @@ import Dict from "Dictionary"
 import { fromRight } from "Either"
 import { always, ifElse } from "Function"
 import IO from "IO"
-import { first, includes, last, range, reduce, reject, zip } from "List"
+import { append, concat, first, includes, last, range, reduce, reject, zip } from "List"
 import { fromMaybe } from "Maybe"
 import Set from "Set"
-import { replace, slice, split, startsWith } from "String"
+import { replace, slice, split, startsWith, toLower } from "String"
 
 
 
@@ -185,16 +185,14 @@ export categorize = (exclude, madlibJson, dependencies) => pipe(
 allDeps :: DepMap -> Set MadDependency
 export allDeps = pipe(
   Dict.toList,
-  reduce(
-    (s, x) => where(x) {
-      #[k, ds] =>
-        Set.merge(s, Set.insert(k, Set.fromList(ds)))
-    },
-    Set.empty,
-  ),
+  reduce((s, x) => where(x) { #[k, ds] => concat(s, append(k, ds)) }, []),
+  Set.fromList,
 )
 
-export keyedDeps = pipe(
-  allDeps,
-  (raw) => zip(range(0, Set.length(raw)), Set.toList(raw)),
+export slug = pipe(
+  name,
+  replace("@", "_"),
+  replace("[\/.]", ""),
+  replace("\.mad$", ""),
+  toLower,
 )

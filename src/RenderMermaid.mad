@@ -1,10 +1,11 @@
 import Dict from "Dictionary"
 import IO from "IO"
 import List from "List"
+import Set from "Set"
 import String from "String"
 import Tuple from "Tuple"
 
-import { isExternal, isLocal, isPrelude, keyedDeps, name } from "@/Dependencies"
+import { allDeps, isExternal, isLocal, isPrelude, name, slug } from "@/Dependencies"
 import { indent, quote, sandwich, unlines } from "@/String"
 
 
@@ -45,15 +46,13 @@ LINK = {
 export declareNode = (styler, i, x) => `id${show(i)}${styler(quote(x))}`
 
 export declareSpecificNodeWithStyle = (select, styler, xs) => pipe(
-  List.filter(where { #[_, x] => select(x) }),
+  // Set.toList,
+  List.filter(select),
   IO.pTrace("!!!"),
   map(
     pipe(
       IO.pTrace("huh"),
-      where {
-        #[i, x] =>
-          declareNode(styler, i, name(x))
-      },
+      (x) => declareNode(styler, slug(x), name(x)),
       indent(1),
     ),
   ),
@@ -74,7 +73,7 @@ export declareNodes = pipe(
 
 export mermaidFlow = (raw) => {
   nodes = pipe(
-    keyedDeps,
+    allDeps,
     declareNodes,
   )(raw)
   IO.pTrace("NODS", nodes)
