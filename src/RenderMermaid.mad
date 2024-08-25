@@ -2,10 +2,20 @@ import Dict from "Dictionary"
 import IO from "IO"
 import List from "List"
 import Set from "Set"
-import String from "String"
+import { isEmpty, join } from "String"
 import Tuple from "Tuple"
 
-import { allDeps, isExternal, isLocal, isPrelude, name, slug } from "@/Dependencies"
+import {
+  External,
+  Local,
+  Prelude,
+  allDeps,
+  isExternal,
+  isLocal,
+  isPrelude,
+  name,
+  slug,
+} from "@/Dependencies"
 import { indent, quote, sandwich, unlines } from "@/String"
 
 
@@ -22,10 +32,14 @@ NODE = {
 }
 
 LINK = {
-  arrow: sandwich($, $, "-->"),
+  arrow: sandwich($, $, " --> "),
+  thick: sandwich($, $, " ==> "),
+  longArrow: sandwich($, $, " ---> "),
+  thickLongArrow: sandwich($, $, " ===> "),
+  longerArrow: sandwich($, $, " ----> "),
+  thickLongerArrow: sandwich($, $, " ====> "),
   open: sandwich($, $, " --- "),
   dotted: sandwich($, $, "-.->"),
-  thick: sandwich($, $, " ==> "),
   invisible: sandwich($, $, " ~~~ "),
   circle: sandwich($, $, " --o "),
   cross: sandwich($, $, " --x "),
@@ -43,15 +57,12 @@ LINK = {
   )(lb),
 }
 
-export declareNode = (styler, i, x) => `id${show(i)}${styler(quote(x))}`
+export declareNode = (styler, i, x) => `${i}${styler(quote(x))}`
 
 export declareSpecificNodeWithStyle = (select, styler, xs) => pipe(
-  // Set.toList,
   List.filter(select),
-  IO.pTrace("!!!"),
   map(
     pipe(
-      IO.pTrace("huh"),
       (x) => declareNode(styler, slug(x), name(x)),
       indent(1),
     ),
@@ -60,8 +71,8 @@ export declareSpecificNodeWithStyle = (select, styler, xs) => pipe(
 )(xs)
 
 export declareNodes = pipe(
+  Set.toList,
   (raw) => {
-    IO.pTrace("RAW", raw)
     paint = declareSpecificNodeWithStyle($, $, raw)
     extNodes = paint(isExternal, NODE.box)
     localNodes = paint(isLocal, NODE.rounded)
@@ -71,11 +82,63 @@ export declareNodes = pipe(
   unlines,
 )
 
-export mermaidFlow = (raw) => {
+export type Direction = LeftRight | TopBottom | RightLeft | BottomTop
+
+renderDir = where {
+  LeftRight =>
+    "LR"
+
+  TopBottom =>
+    "TB"
+
+  RightLeft =>
+    "RL"
+
+  BottomTop =>
+    "BT"
+}
+
+relate = (a, z) => where(#[z, a]) {
+  #[Prelude(_), Local(_)] =>
+    LINK.dotted(slug(z), slug(a))
+
+  #[External(_), Local(_)] =>
+    LINK.longerArrow(slug(z), slug(a))
+
+  #[Local(_), Local(_)] =>
+    LINK.thick(slug(z), slug(a))
+
+  _ =>
+    ""
+}
+
+
+export mermaidFlow = (prefix, dir, raw) => {
   nodes = pipe(
     allDeps,
     declareNodes,
   )(raw)
-  IO.pTrace("NODS", nodes)
-  return nodes
+  relations = pipe(
+    Dict.toList,
+    map(
+      where {
+        #[f, xs] =>
+          pipe(
+            map(
+              pipe(
+                relate(f),
+                indent(1),
+              ),
+            ),
+            unlines,
+          )(xs)
+      },
+    ),
+    join("\n\n"),
+  )(raw)
+  return `${isEmpty(prefix) ? prefix : prefix ++ "\n"}graph ${renderDir(dir)}
+\n  %% declarations\n\n${nodes}
+
+\n  %% relationships\n\n${relations}
+\n`
 }

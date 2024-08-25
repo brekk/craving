@@ -21,7 +21,7 @@ import {
 } from "@/Dependencies"
 import Ext from "@/External"
 import { madParse } from "@/MadlibJson"
-import { mermaidFlow } from "@/RenderMermaid"
+import { BottomTop, LeftRight, TopBottom, mermaidFlow } from "@/RenderMermaid"
 import { search } from "@/Ripgrep"
 
 
@@ -40,10 +40,23 @@ main = () => {
     Wish.mapRej(always(Barf("BAD RIPGREP"))),
     map(map(getUniqueDependencies)),
   )(["from", "--type", "mad", "./src"])
+  /*
+      'themeVariables': {
+        'lineColor': '#f00'
+      }
+      */
   pipe(
     ap($, mJson),
     ap($, deps),
-    map(mermaidFlow),
+    map(
+      mermaidFlow(
+        `%%{ init: {
+  'flowchart': { 'curve': 'bumpX' },
+  
+} }%%`,
+        LeftRight,
+      ),
+    ),
     Wish.fulfill(
       pipe(
         IO.pTrace("BAD"),
