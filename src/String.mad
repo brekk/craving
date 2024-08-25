@@ -1,4 +1,5 @@
-import { join, repeat } from "String"
+import { unless } from "Function"
+import { isEmpty, join, repeat } from "String"
 
 
 
@@ -16,3 +17,6 @@ export quote = sandwich(`"`, `"`)
 
 comment :: String -> String
 export comment = mappend("// ")
+
+mod :: (String -> String) -> String -> String
+export mod = (trx, x) => unless(isEmpty, trx)(x)

@@ -2,10 +2,9 @@ import type { DepMap, MadDependency } from "@/Dependencies"
 import type { AppliedTheme, Theme } from "@/Theme"
 
 import Dict from "Dictionary"
-import { unless } from "Function"
 import List from "List"
 import Set from "Set"
-import { isEmpty, join } from "String"
+import { join } from "String"
 
 import {
   External,
@@ -17,7 +16,7 @@ import {
   isPrelude,
   name,
 } from "@/Dependencies"
-import { comment, indent, quote, sandwich, unlines } from "@/String"
+import { comment, indent, mod, quote, sandwich, unlines } from "@/String"
 import { applyTheme } from "@/Theme"
 
 
@@ -38,7 +37,7 @@ printNodesWithStyle = (i, pre, xs) => pipe(
     ),
   ),
   unlines,
-  unless(isEmpty, mappend(indent(i, pre ++ ";\n"))),
+  mod(mappend(indent(i, pre ++ ";\n"))),
 )(xs)
 
 export alias Attribute = #[String, String]
@@ -60,18 +59,22 @@ renderAttributes = (i, attrs) => pipe(
   unlines,
 )(attrs)
 
-cluster = (attrs, n, body) => `subgraph "${n}" {
+export cluster = (attrs, n, body) => `subgraph "${n}" {
   label="${n}";
   cluster=true;
   ${renderAttributes(2, attrs)}
-
   ${body}
 }`
 
 nodeStyle = mappend("node ")
 
-print :: Integer -> String -> (MadDependency -> Boolean) -> String -> List MadDependency -> String
-print = (i, title, select, pre, xs) => {
+printStyledNodesDeclarationBlock :: Integer
+  -> String
+  -> (MadDependency -> Boolean)
+  -> String
+  -> List MadDependency
+  -> String
+printStyledNodesDeclarationBlock = (i, title, select, pre, xs) => {
   style = pipe(
     sandwich("[", "]"),
     nodeStyle,
@@ -101,13 +104,13 @@ renderNodes = (theme, i, x) => pipe(
       indent(i),
     )(theme.all)
 
-    etch = print(i)
+    print = printStyledNodesDeclarationBlock(i)
     return [
       com("style for all nodes"),
       all,
-      etch("external", isExternal, theme.nodes.external, raw),
-      etch("local", isLocal, theme.nodes.local, raw),
-      etch("prelude", isPrelude, theme.nodes.prelude, raw),
+      print("external", isExternal, theme.nodes.external, raw),
+      print("local", isLocal, theme.nodes.local, raw),
+      print("prelude", isPrelude, theme.nodes.prelude, raw),
     ]
   },
   unlines,
@@ -121,9 +124,11 @@ export declareNodes = (theme, deps) => pipe(
 
 // TEEN GIRL SQUAD
 arrowd :: String -> MadDependency -> MadDependency -> String
-arrowd = (style, a, z) => `${quote(name(a))} -> ${quote(name(z))}${
-  isEmpty(style) ? "" : " [" ++ style ++ "]"
-};`
+arrowd = (style, a, z) => pipe(
+  sandwich(quote(name(a)), quote(name(z))),
+  mappend($, mod(sandwich(" [", "]"), style) ++ ";"),
+)(" -> ")
+
 
 relationshipRules :: AppliedTheme -> MadDependency -> MadDependency -> String
 relationshipRules = (theme, _a, _z) => {
