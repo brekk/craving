@@ -1,10 +1,16 @@
 import type { Maybe } from "Maybe"
 
+import Dict from "Dictionary"
 import { Just, Nothing, fromMaybe } from "Maybe"
+import { join } from "String"
 
 
 
-export alias DepRecord = { external :: String, local :: String, prelude :: String }
+export alias DictString = Dictionary String String
+
+export alias DepRecord = { external :: DictString, local :: DictString, prelude :: DictString }
+export alias DepString = { external :: String, local :: String, prelude :: String }
+
 export alias ThemeStructure = {
   bg :: String,
   external :: String,
@@ -22,14 +28,6 @@ export alias Fonts = { all :: String, external :: String, local :: String, prelu
 export alias Template = ThemeStructure -> Fonts -> String
 export alias TemplateRecord = ThemeStructure -> Fonts -> DepRecord
 
-export WARM = {
-  prelude: "#d62828",
-  external: "#f77f00",
-  local: "#fcbf49",
-  fg: "#003049",
-  bg: "#eae2b7",
-}
-
 // ThemeStructure, Fonts, All, Nodes, Edges
 export type Theme = Theme(ThemeStructure, GivenFonts, Template, TemplateRecord, TemplateRecord)
 
@@ -38,6 +36,18 @@ export alias AppliedTheme = {
   edges :: { external :: String, local :: String, prelude :: String },
   nodes :: { external :: String, local :: String, prelude :: String },
 }
+
+reifyStyle :: DictString -> String
+reifyStyle = pipe(
+  Dict.toList,
+  map(where { #[k, v] => k ++ "=" ++ v }),
+  join(", "),
+)
+
+reifyDepRecord :: DepRecord -> DepString
+reifyDepRecord = (d) => (
+  { external: reifyStyle(d.external), local: reifyStyle(d.local), prelude: reifyStyle(d.prelude) }
+)
 
 applyTheme :: Theme -> AppliedTheme
 export applyTheme = where {
@@ -51,8 +61,14 @@ export applyTheme = where {
       return (
         {
           all: makeAll(structure, fonts),
-          nodes: makeNodes(structure, fonts),
-          edges: makeEdges(structure, fonts),
+          nodes: pipe(
+            makeNodes(structure),
+            reifyDepRecord,
+          )(fonts),
+          edges: pipe(
+            makeEdges(structure),
+            reifyDepRecord,
+          )(fonts),
         }
       )
     }

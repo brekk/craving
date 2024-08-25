@@ -1,6 +1,7 @@
 import { Just, Nothing } from "Maybe"
 
 import Palettes from "@/Palettes"
+import { quote } from "@/String"
 import { Theme } from "@/Theme"
 
 
@@ -11,18 +12,33 @@ export theme = Theme(
   (t, f) => `[fontsize="40pt", fontname="${f.all}", fontcolor="${t.bg}"]`,
   (t, f) => (
     {
-      prelude: `[fontsize="20pt", shape="rect", fillcolor="${
-        t.prelude
-      }", style="filled", margin="0.25", fontname="${f.prelude}"]`,
-      external: `[fillcolor="${t.external}", style="filled", shape="square", margin=0.35]`,
-      local: `[shape="rect", style="rounded,filled", fillcolor="${t.local}", margin=0.25]`,
+      prelude: {{
+        "fontsize": quote("20pt"),
+        "shape": "rect",
+        "fillcolor": quote(t.prelude),
+        "style": "filled",
+        "margin": "0.25",
+        "fontname": quote(f.prelude),
+      }},
+      external: {{
+        "fillcolor": quote(t.external),
+        "style": "filled",
+        "shape": "ellipse",
+        "margin": quote("0,0.15"),
+      }},
+      local: {{
+        "shape": quote("rect"),
+        "style": `"rounded,filled"`,
+        "fillcolor": quote(t.local),
+        "margin": quote("0.25"),
+      }},
     }
   ),
   (t, _) => (
     {
-      external: `color="${t.external}", penwidth=2`,
-      prelude: `style=dashed, color="${t.prelude}", penwidth=2`,
-      local: `style=bold, color="${t.local}", penwidth=2`,
+      external: {{ "color": quote(t.external), "penwidth": "2" }},
+      prelude: {{ "style": "dashed", "color": quote(t.prelude), "penwidth": "2" }},
+      local: {{ "style": "bold", "color": quote(t.local), "penwidth": "2" }},
     }
   ),
 )

@@ -50,7 +50,7 @@ main = () => {
         theme,
         [
           #["bgcolor", `"${getPalette(theme).bg}"`],
-          #["layout", "neato"],
+          // #["concentrate", "true"],
           #["esep", "0.1"],
           #["ranksep", "2"],
           #["overlap", "scalex"],

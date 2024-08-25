@@ -17,7 +17,7 @@ import {
   isPrelude,
   name,
 } from "@/Dependencies"
-import { indent, quote, unlines } from "@/String"
+import { indent, quote, sandwich, unlines } from "@/String"
 import { applyTheme } from "@/Theme"
 
 
@@ -36,7 +36,7 @@ printNodesWithStyle = (i, pre, xs) => pipe(
     ),
   ),
   unlines,
-  unless(String.isEmpty, mappend(indent(i, pre) ++ ";\n")),
+  unless(String.isEmpty, mappend(indent(i, pre ++ ";\n"))),
 )(xs)
 
 export alias Attribute = #[String, String]
@@ -68,21 +68,25 @@ nodeStyle = mappend("node ")
 
 renderNodes = (theme, i, x) => pipe(
   (raw) => {
-    print = printNodesWithStyle(i)
-    all = nodeStyle(theme.all)
+    print = pipe(
+      sandwich("[", "]"),
+      nodeStyle,
+      printNodesWithStyle(i),
+    )
+    all = nodeStyle(theme.all) ++ ";"
     preludeNodes = pipe(
       List.filter(isPrelude),
-      print(nodeStyle(theme.nodes.prelude)),
+      print(theme.nodes.prelude),
     )(raw)
 
     extNodes = pipe(
       List.filter(isExternal),
-      print(nodeStyle(theme.nodes.external)),
+      print(theme.nodes.external),
     )(raw)
 
     localNodes = pipe(
       List.filter(isLocal),
-      print(nodeStyle(theme.nodes.local)),
+      print(theme.nodes.local),
     )(raw)
     return [all, extNodes, localNodes, preludeNodes]
   },
