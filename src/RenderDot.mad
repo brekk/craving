@@ -59,6 +59,7 @@ renderAttributes = (i, attrs) => pipe(
   unlines,
 )(attrs)
 
+cluster :: List Attribute -> String -> String -> String
 export cluster = (attrs, n, body) => `subgraph "${n}" {
   label="${n}";
   cluster=true;
@@ -149,18 +150,15 @@ relationshipRules = (theme, _a, _z) => {
 }
 
 relate :: AppliedTheme -> MadDependency -> List MadDependency -> String
-export relate = (theme, a, zs) => {
-  return pipe(
-    map(
-      pipe(
-        relationshipRules(theme, a),
-        indent(1),
-      ),
+export relate = (theme, a, zs) => pipe(
+  map(
+    pipe(
+      relationshipRules(theme, a),
+      indent(1),
     ),
-    unlines,
-  )(zs)
-}
-
+  ),
+  unlines,
+)(zs)
 
 render :: Theme -> List Attribute -> DepMap -> String
 export render = (_theme, attrs, depMap) => {
