@@ -13,32 +13,27 @@ export theme = Theme(
   (t, f) => (
     {
       prelude: {{
-        "fontsize": quote("20pt"),
+        "fontsize": "20pt",
         "shape": "rect",
-        "fillcolor": quote(t.prelude),
+        "fillcolor": t.prelude,
         "style": "filled",
         "margin": "0.25",
-        "fontname": quote(f.prelude),
+        "fontname": f.prelude,
       }},
-      external: {{
-        "fillcolor": quote(t.external),
-        "style": "filled",
-        "shape": "ellipse",
-        "margin": quote("0,0.15"),
-      }},
+      external: {{ "fillcolor": t.external, "style": "filled", "shape": "ellipse" }},
       local: {{
-        "shape": quote("rect"),
-        "style": `"rounded,filled"`,
-        "fillcolor": quote(t.local),
-        "margin": quote("0.25"),
+        "shape": "rect",
+        "style": `rounded,filled`,
+        "fillcolor": t.local,
+        "margin": "0.25",
       }},
     }
   ),
   (t, _) => (
     {
-      external: {{ "color": quote(t.external), "penwidth": "2" }},
-      prelude: {{ "style": "dashed", "color": quote(t.prelude), "penwidth": "2" }},
-      local: {{ "style": "bold", "color": quote(t.local), "penwidth": "2" }},
+      external: {{ "color": t.external, "penwidth": "2" }},
+      prelude: {{ "style": "dashed", "color": t.prelude, "penwidth": "2" }},
+      local: {{ "style": "bold", "color": t.local, "penwidth": "2" }},
     }
   ),
 )

@@ -4,6 +4,8 @@ import Dict from "Dictionary"
 import { Just, Nothing, fromMaybe } from "Maybe"
 import { join } from "String"
 
+import { quote } from "@/String"
+
 
 
 export alias DictString = Dictionary String String
@@ -40,7 +42,7 @@ export alias AppliedTheme = {
 reifyStyle :: DictString -> String
 reifyStyle = pipe(
   Dict.toList,
-  map(where { #[k, v] => k ++ "=" ++ v }),
+  map(where { #[k, v] => k ++ "=" ++ quote(v) }),
   join(", "),
 )
 

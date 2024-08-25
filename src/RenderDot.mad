@@ -5,7 +5,7 @@ import Dict from "Dictionary"
 import { unless } from "Function"
 import List from "List"
 import Set from "Set"
-import String from "String"
+import { isEmpty, join } from "String"
 
 import {
   External,
@@ -17,17 +17,19 @@ import {
   isPrelude,
   name,
 } from "@/Dependencies"
-import { indent, quote, sandwich, unlines } from "@/String"
+import { comment, indent, quote, sandwich, unlines } from "@/String"
 import { applyTheme } from "@/Theme"
 
 
 
+printNode :: MadDependency -> String
 printNode = pipe(
   name,
   quote,
   mappend($, ";"),
 )
 
+printNodesWithStyle :: Integer -> String -> List MadDependency -> String
 printNodesWithStyle = (i, pre, xs) => pipe(
   map(
     pipe(
@@ -36,15 +38,18 @@ printNodesWithStyle = (i, pre, xs) => pipe(
     ),
   ),
   unlines,
-  unless(String.isEmpty, mappend(indent(i, pre ++ ";\n"))),
+  unless(isEmpty, mappend(indent(i, pre ++ ";\n"))),
 )(xs)
 
 export alias Attribute = #[String, String]
 
+renderAttribute :: Attribute -> String
 renderAttribute = where {
   #[k, v] =>
     `${k}=${v};`
 }
+
+renderAttributes :: Integer -> List Attribute -> String
 renderAttributes = (i, attrs) => pipe(
   map(
     pipe(
@@ -56,39 +61,54 @@ renderAttributes = (i, attrs) => pipe(
 )(attrs)
 
 cluster = (attrs, n, body) => `subgraph "${n}" {
-    label="${n}";
-    cluster=true;
+  label="${n}";
+  cluster=true;
+  ${renderAttributes(2, attrs)}
 
-    ${renderAttributes(2, attrs)}
-
-    ${body}
-  }`
+  ${body}
+}`
 
 nodeStyle = mappend("node ")
 
+print :: Integer -> String -> (MadDependency -> Boolean) -> String -> List MadDependency -> String
+print = (i, title, select, pre, xs) => {
+  style = pipe(
+    sandwich("[", "]"),
+    nodeStyle,
+  )(pre)
+  com = pipe(
+    comment,
+    indent(i),
+  )(`style for ${title} nodes`)
+  return pipe(
+    List.filter(select),
+    printNodesWithStyle(i, style),
+    mappend(com ++ "\n"),
+  )(xs)
+}
+
+renderNodes :: AppliedTheme -> Integer -> List MadDependency -> String
 renderNodes = (theme, i, x) => pipe(
   (raw) => {
-    print = pipe(
-      sandwich("[", "]"),
-      nodeStyle,
-      printNodesWithStyle(i),
+    com = pipe(
+      comment,
+      indent(i),
     )
-    all = nodeStyle(theme.all) ++ ";"
-    preludeNodes = pipe(
-      List.filter(isPrelude),
-      print(theme.nodes.prelude),
-    )(raw)
 
-    extNodes = pipe(
-      List.filter(isExternal),
-      print(theme.nodes.external),
-    )(raw)
+    all = pipe(
+      nodeStyle,
+      mappend($, ";"),
+      indent(i),
+    )(theme.all)
 
-    localNodes = pipe(
-      List.filter(isLocal),
-      print(theme.nodes.local),
-    )(raw)
-    return [all, extNodes, localNodes, preludeNodes]
+    etch = print(i)
+    return [
+      com("style for all nodes"),
+      all,
+      etch("external", isExternal, theme.nodes.external, raw),
+      etch("local", isLocal, theme.nodes.local, raw),
+      etch("prelude", isPrelude, theme.nodes.prelude, raw),
+    ]
   },
   unlines,
 )(x)
@@ -102,9 +122,10 @@ export declareNodes = (theme, deps) => pipe(
 // TEEN GIRL SQUAD
 arrowd :: String -> MadDependency -> MadDependency -> String
 arrowd = (style, a, z) => `${quote(name(a))} -> ${quote(name(z))}${
-  String.isEmpty(style) ? "" : " [" ++ style ++ "]"
+  isEmpty(style) ? "" : " [" ++ style ++ "]"
 };`
 
+relationshipRules :: AppliedTheme -> MadDependency -> MadDependency -> String
 relationshipRules = (theme, _a, _z) => {
   draw = arrowd($, _z, _a)
   return where(#[_z, _a]) {
@@ -148,8 +169,21 @@ export render = (_theme, attrs, depMap) => {
     map(where { #[k, v] => relate(theme, k, v) }),
     unlines,
   )(depMap)
-
-  return `digraph MadDeps {\n\n  \/\/ attributes\n\n${
-    renderAttributes(1, attrs)
-  }\n\n  \/\/ nodes\n\n${nodes}\n\n  \/\/ relationships\n\n${relations}\n}`
+  spacedComment = pipe(
+    comment,
+    mappend("\n\n  "),
+  )
+  return join(
+    "\n\n",
+    [
+      `digraph MadDeps {`,
+      spacedComment("attributes"),
+      renderAttributes(1, attrs),
+      spacedComment("nodes"),
+      nodes,
+      spacedComment("relationships"),
+      relations,
+      `}`,
+    ],
+  )
 }
