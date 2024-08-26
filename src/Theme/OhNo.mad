@@ -24,7 +24,8 @@ export theme = Theme(
       external: {{
         "fillcolor": t.external,
         "style": "filled",
-        "shape": "invhouse",
+        "shape": "rect",
+        "margin": "0.25",
         "fontcolor": t.fg,
       }},
       local: {{

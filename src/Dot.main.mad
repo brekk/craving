@@ -51,6 +51,7 @@ main = () => {
         [
           #["bgcolor", `"${getPalette(theme).bg}"`],
           // #["layout", "sfdp"],
+          // #["splines", "ortho"],
           #["esep", "0.3"],
           #["ranksep", "4"],
           #["overlap", "scalex"],
@@ -68,5 +69,5 @@ main = () => {
         noop,
       ),
     ),
-  )(Wish.good(categorize(["./src/Main.mad", "./src/Dot.main.mad", "./src/Mermaid.main.mad"])))
+  )(Wish.good(categorize(["./src/Main.mad", "./src/Mermaid.main.mad"])))
 }

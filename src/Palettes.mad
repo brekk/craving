@@ -33,7 +33,7 @@ export ROSE_PINE = {
 export MULTICOLOR = {
   external: "#f72585",
   local: "#7209b7",
-  bg: "#343434",
+  bg: "#240046",
   prelude: "#343434",
   fg: "#fcfbf9",
 }
