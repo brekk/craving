@@ -157,7 +157,7 @@ export dependencyColor = pipe(
   fromMaybe(""),
 )
 
-PRELUDE = Dict.keys(PRELUDE_COLORS)
+export PRELUDE = Dict.keys(PRELUDE_COLORS)
 
 categorizeMadDeps :: List String -> String -> MadDependency
 categorizeMadDeps = (madDeps, raw) => ifElse(
@@ -202,6 +202,8 @@ export categorize = (exclude, madlibJson, dependencies) => pipe(
     pipe(
       Set.toList,
       map(categorizeMadDeps(madDeps)),
+      // reject(isPrelude),
+
     ),
     dependencies,
   ),
