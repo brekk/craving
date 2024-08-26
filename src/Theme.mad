@@ -1,8 +1,9 @@
 import type { Maybe } from "Maybe"
 
 import Dict from "Dictionary"
+import List from "List"
 import { Just, Nothing, fromMaybe } from "Maybe"
-import { join } from "String"
+import { isEmpty, join } from "String"
 
 import { quote } from "@/String"
 
@@ -42,6 +43,7 @@ export alias AppliedTheme = {
 reifyStyle :: DictString -> String
 reifyStyle = pipe(
   Dict.toList,
+  List.reject(where { #[_, v] => isEmpty(v) }),
   map(where { #[k, v] => k ++ "=" ++ quote(v) }),
   join(", "),
 )

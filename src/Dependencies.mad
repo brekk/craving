@@ -1,4 +1,5 @@
 import type { Either } from "Either"
+import type { Maybe } from "Maybe"
 
 import type { MadJson } from "@/MadlibJson"
 
@@ -76,59 +77,87 @@ export isExternal = where {
 
 export alias DepMap = Dictionary MadDependency (List MadDependency)
 
-export PRELUDE = [
-  "Alternative",
-  "Applicative",
-  "Array",
-  "Bifunctor",
-  "Byte",
-  "ByteArray",
-  "Char",
-  "Compare",
-  "Control",
-  "Crypto",
-  "Date",
-  "Dictionary",
-  "Directory",
-  "Either",
-  "File",
-  "FilePath",
-  "Float",
-  "Function",
-  "Functor",
-  "Http",
-  "IO",
-  "Integer",
-  "Json/Parse",
-  "Json/Print",
-  "Json/Value",
-  "List",
-  "Math",
-  "Maybe",
-  "Monad",
-  "MonadRec",
-  "Network",
-  "Number",
-  "Parse",
-  "PrettyPrint",
-  "Process",
-  "Random",
-  "Random/LCG",
-  "Scan",
-  "Set",
-  "Short",
-  "Show",
-  "Stream",
-  "Stream/File",
-  "Stream/Process",
-  "String",
-  "Terminal",
-  "Test",
-  "Thread",
-  "Tuple",
-  "Url",
-  "Wish",
-]
+export PRELUDE_COLORS = {{
+  // fundamentals
+  "Compare": "#FFFDD0",
+  "Tuple": "#F8F4FF",
+  // primitives
+  "String": "#4B0082",
+  "Char": "#2B0062",
+  // numeric primitives
+  "Math": "#2B4593",
+  "Number": "#003262",
+  "Short": "#0072AF",
+  "Integer": "#0000FF",
+  "Byte": "#120BA7",
+  "ByteArray": "#123BA7",
+  "Float": "#16166B",
+  // collections
+  "Alternative": "#DFFF00",
+  "List": "#FFD700",
+  "Array": "#FCF75E",
+  "Set": "#EEDC82",
+  // structures
+  "Dictionary": "#EF9B0F",
+  // monadic fundamentals
+  "Monad": "#CD7F32",
+  "MonadRec": "#994200",
+  "Applicative": "#800020",
+  "Bifunctor": "#3D0C02",
+  "Functor": "#3D2B1F",
+  // monadic structures 
+  "Maybe": "#DE3163",
+  "Either": "#E44D2E",
+  "Wish": "#ED2939",
+  // date
+  "Date": "#CCCCFF",
+  // function
+  "Function": "#8806CE",
+  "Control": "#6F2DA8",
+  // web
+  "Url": "#32174D",
+  "Network": "#42274D",
+  "Http": "#32276D",
+  // file
+  "Directory": "#536878",
+  "File": "#708090",
+  "FilePath": "#4D5D53",
+  // parsing
+  "Parse": "#D0417E",
+  "Json/Parse": "#9F4576",
+  "Json/Print": "#AF4596",
+  "Json/Value": "#CF45B6",
+  // ffi
+  "Process": "#03C03C",
+  "Thread": "#177245",
+  "Crypto": "#00693E",
+  // random
+  "Random": "#FF1245",
+  "Random/LCG": "#FF127B",
+  // print
+  "Scan": "#3AA8C1",
+  "Show": "#20B2AA",
+  "PrettyPrint": "#00A693",
+  "Terminal": "#21BCBC",
+  "IO": "#40E0D0",
+  // stream
+  "Stream": "#8C92AC",
+  "Stream/File": "#8C728C",
+  "Stream/Process": "#7C627C",
+  // reflection
+  "Test": "#32ff12",
+}}
+
+preludeColor :: String -> Maybe String
+export preludeColor = Dict.get($, PRELUDE_COLORS)
+
+export dependencyColor = pipe(
+  name,
+  preludeColor,
+  fromMaybe(""),
+)
+
+PRELUDE = Dict.keys(PRELUDE_COLORS)
 
 categorizeMadDeps :: List String -> String -> MadDependency
 categorizeMadDeps = (madDeps, raw) => ifElse(

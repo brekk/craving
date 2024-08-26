@@ -2,6 +2,7 @@ import type { DepMap, MadDependency } from "@/Dependencies"
 import type { AppliedTheme, Theme } from "@/Theme"
 
 import Dict from "Dictionary"
+import IO from "IO"
 import List from "List"
 import Set from "Set"
 import { join } from "String"
@@ -11,6 +12,7 @@ import {
   Local,
   Prelude,
   allDeps,
+  dependencyColor,
   isExternal,
   isLocal,
   isPrelude,
@@ -22,23 +24,35 @@ import { applyTheme } from "@/Theme"
 
 
 printNode :: MadDependency -> String
-printNode = pipe(
-  name,
-  quote,
-  mappend($, ";"),
-)
+printNode = (dep) => {
+  _color = isPrelude(dep) ? dependencyColor(dep) : ""
+  color = mod(
+    pipe(
+      quote,
+      sandwich(" [fillcolor=", "]"),
+    ),
+  )(_color)
+  return pipe(
+    name,
+    quote,
+    mappend($, `${color};`),
+  )(dep)
+}
 
 printNodesWithStyle :: Integer -> String -> List MadDependency -> String
-printNodesWithStyle = (i, pre, xs) => pipe(
-  map(
-    pipe(
-      printNode,
-      indent(i),
+printNodesWithStyle = (i, pre, xs) => {
+  return pipe(
+    map(
+      pipe(
+        printNode,
+        indent(i),
+      ),
     ),
-  ),
-  unlines,
-  mod(mappend(indent(i, pre ++ ";\n"))),
-)(xs)
+    unlines,
+    // declare styles for all in the group
+    mod(mappend(indent(i, pre ++ ";\n"))),
+  )(xs)
+}
 
 export alias Attribute = #[String, String]
 
