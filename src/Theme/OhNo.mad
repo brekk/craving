@@ -7,7 +7,7 @@ import { Theme } from "@/Theme"
 
 
 export theme = Theme(
-  Palettes.ROSE_PINE,
+  Palettes.NEON,
   { all: "Obviously Narrow", prelude: Just("Compadre"), external: Nothing, local: Nothing },
   (t, f) => `[fontsize="40pt", fontname="${f.all}", fontcolor="${t.bg}"]`,
   (t, f) => (
@@ -18,15 +18,20 @@ export theme = Theme(
         "style": "filled",
         "margin": "0.25",
         "fontname": f.prelude,
-        "fillcolor": t.bg,
+        "fillcolor": t.prelude,
         "fontcolor": t.fg,
-        "penwidth": "5",
       }},
-      external: {{ "fillcolor": t.external, "style": "filled", "shape": "ellipse" }},
+      external: {{
+        "fillcolor": t.external,
+        "style": "filled",
+        "shape": "ellipse",
+        "fontcolor": t.fg,
+      }},
       local: {{
         "shape": "rect",
         "style": `rounded,filled`,
         "fillcolor": t.local,
+        "fontcolor": t.fg,
         "margin": "0.25",
       }},
     }
@@ -34,7 +39,7 @@ export theme = Theme(
   (t, _) => (
     {
       external: {{ "color": t.external, "penwidth": "2" }},
-      prelude: {{ "style": "dashed", "penwidth": "2" }},
+      prelude: {{ "color": t.prelude, "style": "dashed", "penwidth": "2" }},
       local: {{ "style": "bold", "color": t.local, "penwidth": "2" }},
     }
   ),

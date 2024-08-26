@@ -30,20 +30,10 @@ import { applyTheme } from "@/Theme"
 
 
 printNode :: MadDependency -> String
-printNode = (dep) => {
-  _color = isPrelude(dep) ? dependencyColor(dep) : ""
-  color = mod(
-    pipe(
-      quote,
-      sandwich(` [color=`, "]"),
-    ),
-  )(_color)
-  return pipe(
-    name,
-    quote,
-    mappend($, `${color};`),
-  )(dep)
-}
+printNode = pipe(
+  name,
+  quote,
+)
 
 printNodesWithStyle :: Integer -> String -> List MadDependency -> String
 printNodesWithStyle = (i, pre, xs) => {
@@ -145,19 +135,10 @@ export declareNodes = (theme, deps) => pipe(
 
 // TEEN GIRL SQUAD
 arrowd :: String -> MadDependency -> MadDependency -> String
-arrowd = (style, a, z) => {
-  _color = isPrelude(a) ? dependencyColor(a) : ""
-  color = mod(
-    pipe(
-      quote,
-      mappend(`, color=`),
-    ),
-  )(_color)
-  return pipe(
-    sandwich(quote(name(a)), quote(name(z))),
-    mappend($, mod(sandwich(" [", "]"), style ++ color) ++ ";"),
-  )(" -> ")
-}
+arrowd = (style, a, z) => pipe(
+  sandwich(quote(name(a)), quote(name(z))),
+  mappend($, mod(sandwich(" [", "]"), style) ++ ";"),
+)(" -> ")
 
 
 relationshipRules :: AppliedTheme -> MadDependency -> MadDependency -> String

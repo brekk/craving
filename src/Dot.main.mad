@@ -49,7 +49,7 @@ main = () => {
       render(
         theme,
         [
-          #["bgcolor", `"#888888"`],
+          #["bgcolor", `"${getPalette(theme).bg}"`],
           // #["layout", "twopi"],
           #["esep", "0.2"],
           #["ranksep", "2"],
