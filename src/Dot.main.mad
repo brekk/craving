@@ -49,9 +49,9 @@ main = () => {
       render(
         theme,
         [
-          #["bgcolor", `"${getPalette(theme).bg}"`],
-          #["layout", "twopi"],
-          #["esep", "0.1"],
+          #["bgcolor", `"#888888"`],
+          // #["layout", "twopi"],
+          #["esep", "0.2"],
           #["ranksep", "2"],
           #["overlap", "scalex"],
           #["outputorder", `"edgesfirst"`],

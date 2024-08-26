@@ -2,10 +2,16 @@ import type { DepMap, MadDependency } from "@/Dependencies"
 import type { AppliedTheme, Theme } from "@/Theme"
 
 import Dict from "Dictionary"
+import Float from "Float"
+import { always, ifElse } from "Function"
 import IO from "IO"
+import Integer from "Integer"
 import List from "List"
 import Set from "Set"
 import { join } from "String"
+
+import { contrastBlack, fromHexString, toTupleFloat } from "Dye"
+import { intFromHex } from "Dye/Hexadecimal"
 
 import {
   External,
@@ -29,7 +35,7 @@ printNode = (dep) => {
   color = mod(
     pipe(
       quote,
-      sandwich(" [fillcolor=", "]"),
+      sandwich(` [color=`, "]"),
     ),
   )(_color)
   return pipe(
@@ -139,10 +145,19 @@ export declareNodes = (theme, deps) => pipe(
 
 // TEEN GIRL SQUAD
 arrowd :: String -> MadDependency -> MadDependency -> String
-arrowd = (style, a, z) => pipe(
-  sandwich(quote(name(a)), quote(name(z))),
-  mappend($, mod(sandwich(" [", "]"), style) ++ ";"),
-)(" -> ")
+arrowd = (style, a, z) => {
+  _color = isPrelude(a) ? dependencyColor(a) : ""
+  color = mod(
+    pipe(
+      quote,
+      mappend(`, color=`),
+    ),
+  )(_color)
+  return pipe(
+    sandwich(quote(name(a)), quote(name(z))),
+    mappend($, mod(sandwich(" [", "]"), style ++ color) ++ ";"),
+  )(" -> ")
+}
 
 
 relationshipRules :: AppliedTheme -> MadDependency -> MadDependency -> String

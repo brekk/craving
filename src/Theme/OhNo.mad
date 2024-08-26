@@ -18,6 +18,9 @@ export theme = Theme(
         "style": "filled",
         "margin": "0.25",
         "fontname": f.prelude,
+        "fillcolor": t.bg,
+        "fontcolor": t.fg,
+        "penwidth": "5",
       }},
       external: {{ "fillcolor": t.external, "style": "filled", "shape": "ellipse" }},
       local: {{
@@ -31,7 +34,7 @@ export theme = Theme(
   (t, _) => (
     {
       external: {{ "color": t.external, "penwidth": "2" }},
-      prelude: {{ "style": "dashed", "color": t.prelude, "penwidth": "2" }},
+      prelude: {{ "style": "dashed", "penwidth": "2" }},
       local: {{ "style": "bold", "color": t.local, "penwidth": "2" }},
     }
   ),

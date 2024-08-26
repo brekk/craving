@@ -79,8 +79,8 @@ export alias DepMap = Dictionary MadDependency (List MadDependency)
 
 export PRELUDE_COLORS = {{
   // fundamentals
-  "Compare": "#FFFDD0",
-  "Tuple": "#F8F4FF",
+  "Compare": "#767676",
+  "Tuple": "#ABABAB",
   // primitives
   "String": "#4B0082",
   "Char": "#2B0062",
@@ -100,9 +100,9 @@ export PRELUDE_COLORS = {{
   // structures
   "Dictionary": "#EF9B0F",
   // monadic fundamentals
-  "Monad": "#CD7F32",
-  "MonadRec": "#994200",
-  "Applicative": "#800020",
+  "Monad": "#AD7F32",
+  "MonadRec": "#694200",
+  "Applicative": "#600020",
   "Bifunctor": "#3D0C02",
   "Functor": "#3D2B1F",
   // monadic structures 
