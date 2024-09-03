@@ -49,11 +49,11 @@ main = () => {
       render(
         theme,
         [
-          #["bgcolor", `"${getPalette(theme).bg}"`],
-          // #["layout", "sfdp"],
+          #["bgcolor", `"#121212"`],
+          #["layout", "sfdp"],
           // #["splines", "ortho"],
-          #["esep", "0.3"],
-          #["ranksep", "4"],
+          #["esep", "0.1"],
+          #["ranksep", "2"],
           #["overlap", "scalex"],
           #["outputorder", `"edgesfirst"`],
         ],

@@ -112,8 +112,8 @@ export PRELUDE_COLORS = {{
   // date
   "Date": "#CCCCFF",
   // function
-  "Function": "#8806CE",
-  "Control": "#6F2DA8",
+  "Function": "#9906DE",
+  "Control": "#AA06EF",
   // web
   "Url": "#32174D",
   "Network": "#42274D",
@@ -202,7 +202,10 @@ export categorize = (exclude, madlibJson, dependencies) => pipe(
     pipe(
       Set.toList,
       map(categorizeMadDeps(madDeps)),
-      reject(isPrelude),
+      // reject(isPrelude),
+
+
+
     ),
     dependencies,
   ),
