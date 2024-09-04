@@ -1,0 +1,10 @@
+import { tag, tagWithScope } from "PartyBus"
+
+
+
+export TAGS = {
+  parse: tag("parse"),
+  parseSignature: tagWithScope("parse", ["signature"]),
+  debug: tag("debug"),
+  warn: tag("warn"),
+}

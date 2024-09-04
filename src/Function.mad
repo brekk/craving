@@ -1,0 +1,27 @@
+compoundAll :: List (a -> Boolean) -> a -> Boolean
+export compoundAll = (preds, x) => where(preds) {
+  [a, ...z] =>
+    a(x) ? compoundAll(z, x) : false
+
+  [] =>
+    true
+}
+
+// this doesn't work as we want yet
+compoundAny :: List (a -> Boolean) -> a -> Boolean
+export compoundAny = (preds, x) => {
+  anyChecked = false
+  check = (p) => where(p) {
+    [a, ...z] =>
+      do {
+        if (!anyChecked) do {
+          anyChecked := true
+        }
+        return a(x) ? check(z) : anyChecked
+      }
+
+    [] =>
+      anyChecked
+  }
+  return check(preds)
+}

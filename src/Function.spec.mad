@@ -1,0 +1,30 @@
+import { report } from "Study"
+
+import { compoundAll, compoundAny } from "@/Function"
+
+
+
+over10 = (x) => x > 10
+under30 = (x) => x < 30
+odd = (x) => x % 2 != 0
+divisibleByThree = (x) => x % 3 == 0
+
+report(over10, "over10", [#[15, true], #[13, true], #[-2, false]])
+
+report(under30, "over30", [#[15, true], #[13, true], #[-2, true]])
+
+report(odd, "odd", [#[15, true], #[13, true], #[-2, false]])
+
+report(divisibleByThree, "divisibleByThree", [#[15, true], #[13, false], #[-2, false]])
+
+report(
+  compoundAll([over10, under30, odd, divisibleByThree]),
+  "compoundAll",
+  [#[15, true], #[13, false], #[-2, false]],
+)
+
+report(
+  compoundAny([over10, under30, odd, divisibleByThree]),
+  "compoundAny",
+  [#[15, true], #[13, true], #[-2, true]],
+)

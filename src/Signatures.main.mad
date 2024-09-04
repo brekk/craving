@@ -1,12 +1,17 @@
+import Dict from "Dictionary"
 import File from "File"
-import { either, equals, noop } from "Function"
+import { always, either, equals, noop } from "Function"
 import IO from "IO"
 import List from "List"
 import { fromMaybe } from "Maybe"
 import String from "String"
 import Wish from "Wish"
 
+import PB from "PartyBus"
+
 import Ext from "@/External"
+import { compoundAny } from "@/Function"
+import { TAGS } from "@/Log"
 
 
 
@@ -25,24 +30,68 @@ main = (args) => {
         List.reject(List.isEmpty),
       ),
     ),
-    // find imports
-    // map(
-    //   pipe(
-    //     List.filter(List.any(String.startsWith("import"))),
-    //   ),
-    // ),
-    // find stuff with signatures
-    // map(List.filter(List.any(String.contains("::")))),
-    // just signatures
-    map(map(List.filter(either(String.contains("::"), String.contains("->"))))),
-    map(List.reject(List.isEmpty)),
+    map(
+      pipe(
+        // get signatures
+        map(
+          List.filter(
+            either(
+              String.contains("type"),
+              either(
+                equals("}"),
+                either(
+                  String.contains("alias"),
+                  either(String.contains("::"), String.contains("->")),
+                ),
+              ),
+            ),
+          ),
+        ),
+        // clean empty matches
+        List.reject(List.isEmpty),
+        // remove imports
+        List.reject(
+          pipe(
+            List.first,
+            map(String.startsWith("import")),
+            fromMaybe(false),
+          ),
+        ),
+        // map names to sigs
+        map(
+          pipe(
+            map(String.trim),
+            String.join("\n"),
+            String.replace("\n", " "),
+            // not everything has a signature
+            // String.split(" :: "),
+
+
+          ),
+        ),
+        PB.env(TAGS.parse, "raw!"),
+        // map(
+        //   where {
+        //     [name, signature] =>
+        //       #[name, signature]
+        //
+        //     _ =>
+        //       #["?", "?"]
+        //   },
+        // ),
+        // Dict.fromList,
+
+      ),
+    ),
+    // PB.env(TAGS.parse, "raw!"),
     Wish.fulfill(
       pipe(
         IO.pTrace("BAD"),
         noop,
       ),
       pipe(
-        IO.pTrace("GOOD"),
+        show,
+        IO.putLine,
         noop,
       ),
     ),
